@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+<html lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TCDD Taşımacılık A.Ş. - Maaş Bordrosu Düzenleyici</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts for authentic monospace receipt/statement typography -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style data-purpose="typography">
+    .font-dotmatrix {
+      font-family: 'JetBrains Mono', 'Courier Prime', Courier, monospace;
+      letter-spacing: -0.01em;
+    }
+  </style>
+<style data-purpose="print-styles">
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .payslip-container {
+        box-shadow: none !important;
+        border: 1px dashed #444 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      input {
+        border-color: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen p-3 sm:p-6 lg:p-8 flex flex-col items-center justify-start font-dotmatrix">
+<form class="w-full flex flex-col items-center" id="payslipForm" onsubmit="event.preventDefault();">
+<!-- BEGIN: Action Controls -->
+<header class="w-full max-w-6xl mb-3 flex flex-wrap gap-2 justify-between items-center no-print">
+<div class="flex items-center flex-wrap gap-2">
+<span class="inline-block w-3 h-3 rounded-full bg-emerald-600 animate-pulse"></span>
+<span class="text-sm font-semibold text-slate-700">İnteraktif Bordro Düzenleyici</span>
+<span class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded border border-slate-300">Veri Giriş Modu</span>
+<span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded border border-emerald-300 flex items-center gap-1" id="liveCalcBadge" title="Değişen tüm tutarlar anlık hesaplanır">
+<svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+  Otomatik Hesaplama Açık
+</span>
+<span class="text-xs bg-sky-100 text-sky-800 font-semibold px-2 py-0.5 rounded border border-sky-300 flex items-center gap-1" id="rateCalcBadge" title="Saat Ücreti x Saat formülleriyle hakedişler anlık türetilir">
+<svg class="w-3 h-3 text-sky-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+  Saatlik Çarpım Aktif
+</span>
+</div>
+<div class="flex items-center flex-wrap gap-2">
+<button class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold uppercase tracking-wider rounded shadow-sm transition flex items-center gap-1.5" id="btnReset" onclick="resetToOriginalValues();" type="button">
+<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      Sıfırla / Orijinal Bordroyu Yükle
+    </button>
+<button class="px-3 py-1.5 bg-sky-700 hover:bg-sky-600 text-white text-xs font-semibold uppercase tracking-wider rounded shadow-sm transition flex items-center gap-1.5" id="btnCalculate" onclick="calculateAllEarningsFromHours(); recalculatePayslip();" type="button">
+<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      Hesapla
+    </button>
+<button class="px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold uppercase tracking-wider rounded shadow-sm transition flex items-center gap-1.5" onclick="recalculatePayslip(); alert('Bordro verileri orijinal TCDD parametreleriyle güncellendi ve kaydedildi.');" type="button">
+<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      Kaydet / Güncelle
+    </button>
+<button class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold uppercase tracking-wider rounded shadow-sm transition flex items-center gap-1.5" onclick="recalculatePayslip(); window.print();" type="button">
+<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+      Yazdır / PDF
+    </button>
+</div>
+</header>
+<!-- END: Action Controls -->
+<!-- BEGIN: Payslip Main Container -->
+<main class="w-full max-w-6xl bg-white border-2 border-dashed border-slate-700 p-4 md:p-6 shadow-lg rounded-none text-[12px] leading-tight text-slate-950 payslip-container" data-purpose="payslip-document">
+<!-- BEGIN: Header Section (Editable) -->
+<section class="border-b-2 border-dashed border-slate-700 pb-2.5 mb-2.5">
+<div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-2">
+<div class="flex-1">
+<label class="sr-only" for="bordroBaslik">Bordro Başlığı</label>
+<input class="w-full font-bold uppercase tracking-wide text-xs sm:text-sm bg-slate-50/70 border border-slate-300 rounded px-2 py-1 text-slate-900 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800" id="bordroBaslik" name="bordroBaslik" type="text" value="TCDD TAŞIMACILIK A.Ş. İŞÇİ AYLIĞI MAAŞ BORDROSU"/>
+</div>
+<div class="flex items-center gap-1 self-end md:self-auto whitespace-nowrap">
+<span class="text-slate-600 font-semibold uppercase text-xs">Dönem:</span>
+<input class="font-bold text-xs bg-slate-50/70 border border-slate-300 rounded px-2 py-1 text-right text-slate-900 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 w-64" id="bordroDonem" name="bordroDonem" type="text" value="08/2026 (15.07.2026-14.08.2026)"/>
+</div>
+</div>
+<!-- BEGIN: Resmi Özel Mevzuat ve Statü Rozeti -->
+<div class="mt-2 pt-1.5 border-t border-dotted border-slate-300 flex flex-wrap items-center justify-between gap-1 text-[10.5px]">
+<div class="flex items-center gap-1.5 text-slate-700">
+<span class="inline-flex items-center justify-center bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded border border-amber-300 text-[9.5px]">MEVZUAT BİLGİSİ</span>
+<span class="font-semibold text-slate-800">Özel Statü:</span>
+<span class="text-slate-700">Terörle Mücadele Kapsamı (Gazi) • 3. Derece Engelli Vergi İndirimi (3.000 ₺) • 31. Dönem TİS 1/1</span>
+</div>
+<div class="text-[10px] text-slate-500 font-mono">
+<span>Gelir/Sosyal Hak Farkları Dahildir</span>
+</div>
+</div>
+<!-- END: Resmi Özel Mevzuat ve Statü Rozeti -->
+</section>
+<!-- END: Header Section -->
+<!-- BEGIN: Column Headings -->
+<div class="grid grid-cols-1 md:grid-cols-12 border-b border-dashed border-slate-700 text-xs font-bold uppercase pb-1 mb-2">
+<div class="md:col-span-3 text-left">ÖZLÜK / PERSONEL BİLGİSİ</div>
+<div class="md:col-span-5 text-center border-l md:border-dashed border-slate-700 px-2">HAKEDİŞLER VE ÖZEL KESİNTİLER</div>
+<div class="md:col-span-4 text-right border-l md:border-dashed border-slate-700 pl-2">YASAL KESİNTİ VE SONUÇLAR</div>
+</div>
+<!-- END: Column Headings -->
+<!-- BEGIN: Main Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-x-3 gap-y-2">
+<!-- LEFT COLUMN: Personel ve Çalışma Bilgileri (Col 1-3) -->
+<section class="md:col-span-3 flex flex-col justify-between pr-2 space-y-1 border-b md:border-b-0 pb-3 md:pb-0" data-purpose="employee-details">
+<div class="space-y-1">
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="islYS">İşl/Y/S</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="islYS" name="islYS" type="text" value="01/0104/03"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="adi">Adı</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="adi" name="adi" type="text" value="İlyas"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="soyadi">Soyadı</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold uppercase bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="soyadi" name="soyadi" type="text" value="İLMEK"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="sicilNo">Sicil No</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="sicilNo" name="sicilNo" type="text" value="084857"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="persNo">Pers.No</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="persNo" name="persNo" type="text" value="11000867"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="sskNo">SSK No</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="sskNo" name="sskNo" type="text" value="3408199916012"/>
+</div>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center text-slate-600">
+<label for="unvani">Ünvanı</label>
+</div>
+<div class="flex items-center">
+<span class="mr-1 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold uppercase bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="unvani" name="unvani" type="text" value="VAGON İMAL VE TAMİRC"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="derKad">Der/Kad.</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="derKad" name="derKad" type="text" value="001/ 01"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-1 text-[11px] pt-0.5">
+<div>
+<label class="text-slate-600 block text-[10px]" for="kidemYili">Kıdem Yılı</label>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="kidemYili" name="kidemYili" type="number" value="15"/>
+</div>
+<div>
+<label class="text-slate-600 block text-[10px]" for="hzmZammiYil">Hzm.Zammı Yıl</label>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="hzmZammiYil" name="hzmZammiYil" type="number" value="15"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1 bg-amber-50/60 p-0.5 rounded border border-amber-200">
+<div class="flex items-center gap-1">
+<label class="text-slate-800 font-bold shrink-0" for="saatUcr">Saat Ücr</label>
+<span class="no-print text-[8px] bg-sky-200 text-sky-800 font-bold px-1 py-0.2 rounded border border-sky-300" title="Hakediş formüllerinde kullanılan temel katsayı">BAZ</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right text-slate-900 bg-white border border-amber-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-amber-600 focus:ring-1 focus:ring-amber-600" id="saatUcr" name="saatUcr" type="text" value="385,980000"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="emkZam">Emk. Zam</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="emkZam" name="emkZam" type="text" value="19,050000"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="brtAylk">Brt Aylk</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="brtAylk" name="brtAylk" type="text" value="0,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="kdmZam">Kdm. Zam</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="kdmZam" name="kdmZam" type="text" value="0,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600 shrink-0" for="hastGun">Hast.Gün</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="hastGun" name="hastGun" type="text" value="8,00"/>
+</div>
+</div>
+<div class="flex flex-col text-[11px] mt-1 pt-1 border-t border-dotted border-slate-400">
+<label class="text-slate-600" for="isySsk">İşy.SSK :</label>
+<input class="w-full text-xs font-mono font-semibold tracking-tighter text-slate-800 bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="isySsk" name="isySsk" type="text" value="13317020211372650410"/>
+</div>
+</div>
+<!-- İMZA Alanı -->
+<div class="pt-2 mt-2 border-t border-dashed border-slate-400">
+<div class="flex justify-between items-center mb-1">
+<label class="font-bold text-xs uppercase" for="imzaNot">İMZA :</label>
+<span class="text-[10px] text-slate-500">Personel Onayı</span>
+</div>
+<div class="border border-dashed border-slate-400 rounded bg-slate-50/50 p-2 text-center h-12 flex flex-col justify-end">
+<input class="w-full text-[11px] text-center italic bg-transparent border-0 border-b border-dotted border-slate-400 focus:ring-0 focus:border-slate-700 p-0 text-slate-600 placeholder:text-slate-400" id="imzaNot" name="imzaNot" placeholder="Ad / Soyad veya Islak İmza Alanı" type="text"/>
+</div>
+</div>
+</section>
+<!-- MIDDLE COLUMN: Hakedişler ve Özel Kesintiler (Col 4-8) -->
+<section class="md:col-span-5 border-l-0 md:border-l border-dashed border-slate-700 px-0 md:px-3 border-b md:border-b-0 pb-3 md:pb-0" data-purpose="earnings-and-deductions">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-2.5 gap-y-2">
+<!-- Hakedişler Alt Sütunu -->
+<div class="space-y-1 pr-0 sm:pr-1 sm:border-r border-dashed border-slate-400">
+<div class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 pb-0.5 border-b border-dotted border-slate-400 flex justify-between">
+<span>Hakediş</span>
+<span class="text-[10px] text-slate-500">Saat / Tutar</span>
+</div>
+<!-- Normal Çalış -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">Normal Çalış</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam)">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="ncSaat" name="ncSaat" title="Saat" type="text" value="62,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="ncTutar" name="ncTutar" title="Tutar (Saat x Ücret)" type="text" value="25.111,86"/>
+</div>
+</div>
+<!-- Hafta Tatili -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">Hafta Tatili</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam)">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="htSaat" name="htSaat" title="Saat" type="text" value="30,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="htTutar" name="htTutar" title="Tutar (Saat x Ücret)" type="text" value="12.150,90"/>
+</div>
+</div>
+<!-- UBGT -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">UBGT</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam)">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="ubgtSaat" name="ubgtSaat" title="Saat" type="text" value="9,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="ubgtTutar" name="ubgtTutar" title="Tutar (Saat x Ücret)" type="text" value="3.645,27"/>
+</div>
+</div>
+<!-- Ücretli İzin -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">Ücretli İzin</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam)">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="uiSaat" name="uiSaat" title="Saat" type="text" value="64,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="uiTutar" name="uiTutar" title="Tutar (Saat x Ücret)" type="text" value="25.921,92"/>
+</div>
+</div>
+<!-- Ücretli Rapor -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">Ücretli Rapor</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam)">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="urSaat" name="urSaat" title="Saat" type="text" value="72,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="urTutar" name="urTutar" title="Tutar (Saat x Ücret)" type="text" value="29.162,16"/>
+</div>
+</div>
+<!-- İaşe Günü -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">İaşe Günü</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Günlük iaşe tutarı katsayısı">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="iase" id="iaseSaat" name="iaseSaat" title="Saat/Gün" type="text" value="8,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="iaseTutar" name="iaseTutar" title="Tutar" type="text" value="2.409,26"/>
+</div>
+</div>
+<!-- GŞT %10 -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">GŞT %10</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x Saat Ücreti x %10">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="gst10" id="gstSaat" name="gstSaat" title="Saat" type="text" value="155,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="gstTutar" name="gstTutar" title="Tutar (Saat x Saat Ücreti x 0.10)" type="text" value="5.982,69"/>
+</div>
+</div>
+<!-- Hizmet Zammı -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium">Hizmet Zammı</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Kıdem Yılı / Hizmet Çarpımı">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="hizmet" id="hzmSaat" name="hzmSaat" title="Saat/Yıl" type="text" value="15,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="hzmTutar" name="hzmTutar" title="Tutar" type="text" value="370,05"/>
+</div>
+</div>
+<!-- GMŞ%(17+7)24 -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] text-slate-700 font-medium truncate" title="GMŞ%(17+7)24">GMŞ%(17+7)24</span>
+<span class="no-print text-[8px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x Ek Katsayı">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1">
+<input class="col-span-5 text-[11px] text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="gms24" id="gmsSaat" name="gmsSaat" title="Saat" type="text" value="155,00"/>
+<input class="col-span-7 text-[11px] font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="gmsTutar" name="gmsTutar" title="Tutar" type="text" value="15.067,12"/>
+</div>
+</div>
+</div>
+<!-- Özel Kesintiler ve Ek Gelirler Alt Sütunu -->
+<div class="space-y-1 pl-0 sm:pl-1">
+<div class="text-[11px] font-bold text-slate-700 uppercase mb-1.5 pb-0.5 border-b border-dotted border-slate-400 flex justify-between">
+<span>Özel Kesintiler</span>
+<span class="text-[10px] text-slate-500">Tutar (TL)</span>
+</div>
+<!-- Birleştirilm (Gelir hanesine dahil ek sosyal ödeme) -->
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-[11px] text-slate-800 font-medium truncate" for="kesBirlestirilm" title="Birleştirilmiş Sosyal Yardım (Gelir Kalemi)">Birleştirilm:</label>
+<span class="no-print text-[8px] bg-emerald-100 text-emerald-800 px-1 rounded font-bold border border-emerald-300" title="TCDD TİS kapsamında Gelir Toplamına eklenen sosyal yardım">+GELİR</span>
+</div>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 special-earning-amount" id="kesBirlestirilm" name="kesBirlestirilm" title="Birleştirilmiş Sosyal Yardım (Gelire Eklenir)" type="text" value="5.089,70"/>
+</div>
+</div>
+<!-- Sendika Aida -->
+<div class="flex items-center justify-between gap-1">
+<label class="text-[11px] text-slate-700 truncate" for="kesSendika" title="Sendika Aidatı">Sendika Aida:</label>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="kesSendika" name="kesSendika" type="text" value="2.511,19"/>
+</div>
+</div>
+<!-- Spor Aidatı -->
+<div class="flex items-center justify-between gap-1">
+<label class="text-[11px] text-slate-700 truncate" for="kesSpor" title="Spor Aidatı">Spor Aidatı :</label>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="kesSpor" name="kesSpor" type="text" value="10,00"/>
+</div>
+</div>
+<!-- Vergiden Mua (3. Derece Engelli İndirimi) -->
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-[11px] text-slate-700 truncate" for="kesVergiMuaf" title="Vergiden Muaf (3. Derece Engelli İndirimi)">Vergiden Mua:</label>
+<span class="no-print text-[8px] bg-slate-200 text-slate-700 px-1 rounded font-semibold border border-slate-300" title="Vergi Matrahından Muaf Tutulan Tutar">İSTİSNA</span>
+</div>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="kesVergiMuaf" name="kesVergiMuaf" title="3. Derece Engelli Vergi Muafiyet Matrahı" type="text" value="3.000,00"/>
+</div>
+</div>
+<!-- Terfi Fark-İ (Gelir hanesine dahil terfi farkı) -->
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-[11px] text-slate-800 font-medium truncate" for="kesTerfiFark" title="Terfi Farkı (Gelir Kalemi)">Terfi Fark-İ:</label>
+<span class="no-print text-[8px] bg-emerald-100 text-emerald-800 px-1 rounded font-bold border border-emerald-300" title="TCDD TİS kapsamında Gelir Toplamına eklenen intibak/terfi farkı">+GELİR</span>
+</div>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 special-earning-amount" id="kesTerfiFark" name="kesTerfiFark" title="Terfi Farkı (Gelire Eklenir)" type="text" value="8.684,57"/>
+</div>
+</div>
+<!-- Mahsup Ksnt. -->
+<div class="flex items-center justify-between gap-1">
+<label class="text-[11px] text-slate-700 truncate" for="kesMahsup" title="Mahsup Kesintisi">Mahsup Ksnt.:</label>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right text-red-700 bg-red-50/40 border border-red-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 deduction-amount" id="kesMahsup" name="kesMahsup" title="Özel Kesinti" type="text" value="-6.004,01"/>
+</div>
+</div>
+<!-- Ekstra Boş Satır Alanı (Esneklik için) -->
+<div class="pt-2 mt-2 border-t border-dotted border-slate-300">
+<div class="flex items-center justify-between gap-1">
+<input class="w-24 text-[10px] bg-transparent border-0 border-b border-dashed border-slate-300 p-0 text-slate-600 placeholder:text-slate-400 focus:ring-0" id="kesIlaveAd" name="kesIlaveAd" placeholder="İlave Kesinti..." type="text"/>
+<div class="flex items-center w-28 shrink-0">
+<span class="mr-0.5 text-slate-400">:</span>
+<input class="w-full text-xs font-medium text-right bg-slate-50/50 border border-slate-200 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-600 focus:ring-1 focus:ring-slate-600 deduction-amount" id="kesIlaveTutar" name="kesIlaveTutar" placeholder="0,00" type="text" value="0,00"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- RIGHT COLUMN: Yasal Kesintiler ve Sonuçlar (Col 9-12) -->
+<section class="md:col-span-4 border-l-0 md:border-l border-dashed border-slate-700 pl-0 md:pl-3 space-y-1" data-purpose="statutory-deductions-and-summary">
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="calistigiGun">Çalıştığı Gün</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="calistigiGun" name="calistigiGun" type="text" value="31,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="sskGunu">SSK Günü</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="sskGunu" name="sskGunu" type="text" value="30,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="sskMatrahi">SSK Matrahı</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="sskMatrahi" name="sskMatrahi" type="text" value="131.195,50"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-slate-600" for="sskPrimIsci">SSK Prim İşçi</label>
+<span class="no-print text-[8px] bg-slate-200 text-slate-700 px-1 rounded font-semibold border border-slate-300" title="Özel Gazi/İndirimli Prim Oranı">ÖZEL</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="sskPrimIsci" name="sskPrimIsci" type="text" value="11.807,60"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="sskPrimIsv">SSK Prim(İşv)</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="sskPrimIsv" name="sskPrimIsv" type="text" value="18.695,36"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="yillikGlrVM">Yıllık Glr.VM</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="yillikGlrVM" name="yillikGlrVM" type="text" value="1.071.964,16"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="aylikGlrVM">Aylık Glr.VM</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="aylikGlrVM" name="aylikGlrVM" type="text" value="113.876,71"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="gelirVergisi">Gelir Vergisi</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="gelirVergisi" name="gelirVergisi" type="text" value="25.131,61"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="damgaVergisi">Damga Vergisi</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="damgaVergisi" name="damgaVergisi" type="text" value="745,07"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-slate-600" for="issSigIsc">İşs.Sig.(İşç)</label>
+<span class="no-print text-[8px] bg-emerald-100 text-emerald-800 px-1 rounded font-semibold border border-emerald-300" title="Gazi / Emekli / Terörle Mücadele İstisnası">MUAF</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 deduction-amount" id="issSigIsc" name="issSigIsc" type="text" value="0,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-slate-600" for="issSigIsv">İşs.Sig.(İşv)</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="issSigIsv" name="issSigIsv" type="text" value="0,00"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="text-slate-600" for="mahsupFark">Mahsup Fark</label>
+<span class="no-print text-[8px] bg-amber-100 text-amber-800 px-1 rounded font-semibold border border-amber-300" title="İade / Kesintiden Mahsup Tutarı">İADE</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right text-red-700 bg-red-50/40 border border-red-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 deduction-amount" id="mahsupFark" name="mahsupFark" title="Mahsup Farkı (Kesinti Toplamından İade Olarak Düşülür)" type="text" value="-445,91"/>
+</div>
+</div>
+<!-- Özet / Bitiş Alanları -->
+<div class="pt-2 mt-1.5 border-t border-dashed border-slate-700 space-y-1">
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="font-bold text-slate-900" for="gelirToplami">Gelir Toplamı</label>
+<span class="no-print text-[9px] bg-emerald-100 text-emerald-800 font-semibold px-1 py-0.2 rounded border border-emerald-300" title="Hakedişler + Birleştirilmiş Sosyal Yardım + Terfi Farkı Canlı Toplamı">OTO</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right bg-slate-100 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-800 focus:ring-1 focus:ring-slate-800 transition-colors" id="gelirToplami" name="gelirToplami" readonly="" title="Tüm Hakedişler + Birleştirilmiş + Terfi Fark-İ Toplamı" type="text" value="133.595,50"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1">
+<div class="flex items-center gap-1">
+<label class="font-bold text-slate-900" for="kesintiTopl">Kesinti Topl.</label>
+<span class="no-print text-[9px] bg-red-100 text-red-700 font-semibold px-1 py-0.2 rounded border border-red-200" title="Yasal ve Özel Kesintilerin Canlı Net Toplamı">OTO</span>
+</div>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs font-bold text-right text-red-700 bg-red-50/50 border border-red-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors" id="kesintiTopl" name="kesintiTopl" readonly="" title="Tüm Yasal ve Özel Kesintiler Toplamı (Mahsup Fark Dahil)" type="text" value="46.209,48"/>
+</div>
+</div>
+<div class="flex items-center justify-between bg-emerald-50/70 p-1.5 rounded border border-emerald-300 my-1">
+<div class="flex items-center gap-1">
+<label class="font-bold text-xs tracking-wide text-slate-900" for="netOdeme">Net Ödeme</label>
+<span class="no-print text-[9px] bg-emerald-200 text-emerald-900 font-bold px-1 py-0.2 rounded border border-emerald-300">NET</span>
+</div>
+<div class="flex items-center w-40">
+<span class="mr-1 font-bold text-emerald-900">:</span>
+<input class="w-full text-sm font-bold text-right text-emerald-800 bg-white border border-emerald-400 rounded px-1.5 py-0.5 shadow-sm focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-colors" id="netOdeme" name="netOdeme" readonly="" title="Gelir Toplamı - Kesinti Toplamı" type="text" value="87.386,02 TL"/>
+</div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-slate-600">
+<label for="asgariGecIn">Asgari Geç.İn</label>
+<div class="flex items-center w-36">
+<span class="mr-0.5 text-slate-500">:</span>
+<input class="w-full text-xs text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="asgariGecIn" name="asgariGecIn" type="text" value="0,00"/>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- END: Main Content Grid -->
+<!-- BEGIN: Footer Divider -->
+<div class="mt-4 pt-2 border-t-2 border-dashed border-slate-700 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-1">
+<div class="flex items-center gap-1.5">
+<span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span>
+<span>Belge Bilgisayar Çıktısıdır (Düzenlenebilir Bordro Formu)</span>
+</div>
+<span class="font-mono text-[10px]">TCDD TAŞIMACILIK A.Ş. Personel Bilgi Sistemi • Canlı Hesaplama Motoru</span>
+</div>
+<!-- END: Footer Divider -->
+</main>
+<!-- END: Payslip Main Container -->
+</form>
+<!-- BEGIN: Live Calculation Script Engine -->
+<script>
+  (function() {
+    // Utility: Parse Turkish formatted numbers (e.g., "25.111,86" or "-6.004,01")
+    function parseTRNumber(str) {
+      if (!str && str !== 0) return 0;
+      if (typeof str === 'number') return isNaN(str) ? 0 : str;
+      var clean = String(str).trim();
+      // remove currency texts
+      clean = clean.replace(/TL|₺/gi, '').trim();
+      var isNegative = clean.startsWith('-');
+      clean = clean.replace(/^-/, '');
+      // remove dots (thousand separators) and replace comma with dot
+      clean = clean.replace(/\./g, '').replace(',', '.');
+      var num = parseFloat(clean);
+      if (isNaN(num)) return 0;
+      return isNegative ? -num : num;
+    }
+
+    // Utility: Format number back to Turkish standard currency format (e.g. 87.386,02)
+    function formatTRNumber(num, decimals) {
+      if (decimals === undefined) decimals = 2;
+      var n = Number(num);
+      if (isNaN(n)) n = 0;
+      var isNeg = n < -0.000001;
+      n = Math.abs(n);
+      var fixed = n.toFixed(decimals);
+      var parts = fixed.split('.');
+      var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      var decPart = parts[1] || "00";
+      var result = intPart + "," + decPart;
+      return isNeg ? "-" + result : result;
+    }
+
+    // Exact original baseline values dictionary for factory reset
+    var originalBordroData = {
+      islYS: "01/0104/03",
+      adi: "İlyas",
+      soyadi: "İLMEK",
+      sicilNo: "084857",
+      persNo: "11000867",
+      sskNo: "3408199916012",
+      unvani: "VAGON İMAL VE TAMİRC",
+      derKad: "001/ 01",
+      kidemYili: "15",
+      hzmZammiYil: "15",
+      saatUcr: "385,980000",
+      emkZam: "19,050000",
+      brtAylk: "0,00",
+      kdmZam: "0,00",
+      hastGun: "8,00",
+      isySsk: "13317020211372650410",
+      imzaNot: "",
+      ncSaat: "62,00",
+      ncTutar: "25.111,86",
+      htSaat: "30,00",
+      htTutar: "12.150,90",
+      ubgtSaat: "9,00",
+      ubgtTutar: "3.645,27",
+      uiSaat: "64,00",
+      uiTutar: "25.921,92",
+      urSaat: "72,00",
+      urTutar: "29.162,16",
+      iaseSaat: "8,00",
+      iaseTutar: "2.409,26",
+      gstSaat: "155,00",
+      gstTutar: "5.982,69",
+      hzmSaat: "15,00",
+      hzmTutar: "370,05",
+      gmsSaat: "155,00",
+      gmsTutar: "15.067,12",
+      kesBirlestirilm: "5.089,70",
+      kesSendika: "2.511,19",
+      kesSpor: "10,00",
+      kesVergiMuaf: "3.000,00",
+      kesTerfiFark: "8.684,57",
+      kesMahsup: "-6.004,01",
+      kesIlaveAd: "",
+      kesIlaveTutar: "0,00",
+      calistigiGun: "31,00",
+      sskGunu: "30,00",
+      sskMatrahi: "131.195,50",
+      sskPrimIsci: "11.807,60",
+      sskPrimIsv: "18.695,36",
+      yillikGlrVM: "1.071.964,16",
+      aylikGlrVM: "113.876,71",
+      gelirVergisi: "25.131,61",
+      damgaVergisi: "745,07",
+      issSigIsc: "0,00",
+      issSigIsv: "0,00",
+      mahsupFark: "-445,91",
+      asgariGecIn: "0,00",
+      gelirToplami: "133.595,50",
+      kesintiTopl: "46.209,48",
+      netOdeme: "87.386,02 TL"
+    };
+
+    window.resetToOriginalValues = function() {
+      for (var id in originalBordroData) {
+        if (originalBordroData.hasOwnProperty(id)) {
+          var el = document.getElementById(id);
+          if (el) {
+            el.value = originalBordroData[id];
+          }
+        }
+      }
+      recalculatePayslip();
+    };
+
+    // Calculate individual earning amount from its hour value and formula rule
+    function calculateEarningItem(hourId, amountId, rule) {
+      var hourEl = document.getElementById(hourId);
+      var amtEl = document.getElementById(amountId);
+      if (!hourEl || !amtEl) return;
+
+      var saatUcr = parseTRNumber(document.getElementById('saatUcr') ? document.getElementById('saatUcr').value : "385,980000");
+      var emkZam = parseTRNumber(document.getElementById('emkZam') ? document.getElementById('emkZam').value : "19,050000");
+      // Effective standard base hourly rate in TCDD wage table = Saat Ücreti + Emeklilik Zammı (385.98 + 19.05 = ~405.03)
+      var effectiveRate = saatUcr + emkZam;
+      if (effectiveRate <= 0) effectiveRate = saatUcr > 0 ? saatUcr : 385.98;
+
+      var hours = parseTRNumber(hourEl.value);
+      var calcAmount = 0;
+
+      switch(rule) {
+        case 'base':
+          // Normal Çalış, Hafta Tatili, UBGT, Ücretli İzin, Ücretli Rapor: Saat x (Saat Ücreti + Emk Zam)
+          calcAmount = hours * effectiveRate;
+          break;
+        case 'gst10':
+          // GŞT %10 = GŞT Saati * Saat Ücreti * 0.10
+          calcAmount = hours * saatUcr * 0.10;
+          break;
+        case 'gms24':
+          // GMŞ %(17+7)24: 155 saat için orijinal bordrodaki 15.067,12 TL (saat başına ~97.20722 TL)
+          calcAmount = hours * (15067.12 / 155.0);
+          break;
+        case 'iase':
+          // İaşe Günü: 8 gün = 2.409,26 TL (günlük ~301.1575)
+          calcAmount = hours * (2409.26 / 8.0);
+          break;
+        case 'hizmet':
+          // Hizmet Zammı: 15 yıl/gün = 370,05 TL (katsayı ~24.67)
+          calcAmount = hours * (370.05 / 15.0);
+          break;
+        default:
+          calcAmount = hours * saatUcr;
+      }
+
+      amtEl.value = formatTRNumber(calcAmount);
+    }
+
+    // Public method to batch recalculate all earnings when base rate changes
+    window.calculateAllEarningsFromHours = function() {
+      var rules = [
+        { hourId: 'ncSaat', amountId: 'ncTutar', rule: 'base' },
+        { hourId: 'htSaat', amountId: 'htTutar', rule: 'base' },
+        { hourId: 'ubgtSaat', amountId: 'ubgtTutar', rule: 'base' },
+        { hourId: 'uiSaat', amountId: 'uiTutar', rule: 'base' },
+        { hourId: 'urSaat', amountId: 'urTutar', rule: 'base' },
+        { hourId: 'iaseSaat', amountId: 'iaseTutar', rule: 'iase' },
+        { hourId: 'gstSaat', amountId: 'gstTutar', rule: 'gst10' },
+        { hourId: 'hzmSaat', amountId: 'hzmTutar', rule: 'hizmet' },
+        { hourId: 'gmsSaat', amountId: 'gmsTutar', rule: 'gms24' }
+      ];
+
+      rules.forEach(function(item) {
+        calculateEarningItem(item.hourId, item.amountId, item.rule);
+      });
+    };
+
+    // Main calculation routine: Gelir, Kesinti, Net Ödeme
+    // GELİR TOPLAMI = Hakedişler + Birleştirilmiş Sosyal Yardım (5.089,70) + Terfi Fark-İ (8.684,57) = 133.595,50 TL
+    // KESİNTİ TOPLAMI = Sendika Aidatı + Spor Aidatı + Mahsup Kesintisi + SSK Prim (İşçi) + Gelir Vergisi + Damga Vergisi + İşsizlik Sigortası (İşçi) - Mahsup Farkı = 46.209,48 TL
+    // NET ÖDEME = Gelir Toplamı - Kesinti Toplamı = 87.386,02 TL
+    window.recalculatePayslip = function() {
+      // 1. Calculate Standard Earnings (.earning-amount)
+      var earningInputs = document.querySelectorAll('.earning-amount');
+      var baseEarningsTotal = 0;
+      earningInputs.forEach(function(input) {
+        baseEarningsTotal += parseTRNumber(input.value);
+      });
+
+      // Special TCDD Earnings: Birleştirilmiş Sosyal Yardım ve Terfi Fark-İ
+      var specialEarningInputs = document.querySelectorAll('.special-earning-amount');
+      var specialEarningsTotal = 0;
+      specialEarningInputs.forEach(function(input) {
+        specialEarningsTotal += Math.abs(parseTRNumber(input.value));
+      });
+
+      var totalEarnings = baseEarningsTotal + specialEarningsTotal;
+
+      // 2. Calculate Deductions (.deduction-amount)
+      // Sendika Aidatı (2.511,19) + Spor Aidatı (10,00) + Mahsup Ksnt (6.004,01) + SSK Prim İşçi (11.807,60)
+      // + Gelir Vergisi (25.131,61) + Damga Vergisi (745,07) + İşs. Sig İşçi (0,00) + İlave Kesinti
+      // - Mahsup Farkı (445,91 iade olarak düşülür)
+      var deductionInputs = document.querySelectorAll('.deduction-amount');
+      var totalDeductions = 0;
+      deductionInputs.forEach(function(input) {
+        var val = parseTRNumber(input.value);
+        if (input.id === 'kesMahsup') {
+          // Orijinal bordroda Mahsup Ksnt. '-6.004,01' olarak yazsa da kesintiye pozitif eklenir
+          totalDeductions += Math.abs(val);
+        } else if (input.id === 'mahsupFark') {
+          // Mahsup Fark -445,91 TL: negatif iade farkıdır, kesinti toplamını azaltır
+          totalDeductions += val;
+        } else {
+          totalDeductions += val;
+        }
+      });
+
+      // 3. Calculate Net Payment (Net Ödeme = Gelir Toplamı - Kesinti Toplamı)
+      var netPayment = totalEarnings - totalDeductions;
+
+      // Update DOM elements
+      var elGelirToplami = document.getElementById('gelirToplami');
+      var elKesintiTopl = document.getElementById('kesintiTopl');
+      var elNetOdeme = document.getElementById('netOdeme');
+
+      if (elGelirToplami) {
+        elGelirToplami.value = formatTRNumber(totalEarnings);
+      }
+
+      if (elKesintiTopl) {
+        elKesintiTopl.value = formatTRNumber(totalDeductions);
+      }
+
+      if (elNetOdeme) {
+        elNetOdeme.value = formatTRNumber(netPayment) + ' TL';
+      }
+
+      // Visual flash indicator for live feedback
+      highlightCalculatedFields([elGelirToplami, elKesintiTopl, elNetOdeme]);
+    };
+
+    function highlightCalculatedFields(elements) {
+      elements.forEach(function(el) {
+        if (!el) return;
+        el.classList.add('ring-1', 'ring-emerald-400');
+        setTimeout(function() {
+          el.classList.remove('ring-1', 'ring-emerald-400');
+        }, 300);
+      });
+    }
+
+    // Auto calculate hours to amounts when hour or hourly rate is modified
+    function setupHourCalculations() {
+      var hourInputMap = [
+        { hourId: 'ncSaat', amountId: 'ncTutar', rule: 'base' },
+        { hourId: 'htSaat', amountId: 'htTutar', rule: 'base' },
+        { hourId: 'ubgtSaat', amountId: 'ubgtTutar', rule: 'base' },
+        { hourId: 'uiSaat', amountId: 'uiTutar', rule: 'base' },
+        { hourId: 'urSaat', amountId: 'urTutar', rule: 'base' },
+        { hourId: 'iaseSaat', amountId: 'iaseTutar', rule: 'iase' },
+        { hourId: 'gstSaat', amountId: 'gstTutar', rule: 'gst10' },
+        { hourId: 'hzmSaat', amountId: 'hzmTutar', rule: 'hizmet' },
+        { hourId: 'gmsSaat', amountId: 'gmsTutar', rule: 'gms24' }
+      ];
+
+      hourInputMap.forEach(function(item) {
+        var hourEl = document.getElementById(item.hourId);
+        if (!hourEl) return;
+
+        hourEl.addEventListener('input', function() {
+          calculateEarningItem(item.hourId, item.amountId, item.rule);
+          recalculatePayslip();
+        });
+      });
+
+      // When Saat Ücreti or Emk Zam is altered, update all hours formulas chained
+      var saatUcrInput = document.getElementById('saatUcr');
+      var emkZamInput = document.getElementById('emkZam');
+
+      if (saatUcrInput) {
+        saatUcrInput.addEventListener('input', function() {
+          calculateAllEarningsFromHours();
+          recalculatePayslip();
+        });
+      }
+      if (emkZamInput) {
+        emkZamInput.addEventListener('input', function() {
+          calculateAllEarningsFromHours();
+          recalculatePayslip();
+        });
+      }
+    }
+
+    // Bind event listeners to all input elements
+    function initLiveCalculations() {
+      var form = document.getElementById('payslipForm');
+      if (!form) return;
+
+      // Listen on manual input and change on earning, special earning or deduction amounts
+      form.addEventListener('input', function(e) {
+        if (e.target.classList.contains('earning-amount') || 
+            e.target.classList.contains('special-earning-amount') || 
+            e.target.classList.contains('deduction-amount')) {
+          recalculatePayslip();
+        }
+      });
+
+      setupHourCalculations();
+      // Run once on load to establish exact sync
+      recalculatePayslip();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLiveCalculations);
+    } else {
+      initLiveCalculations();
+    }
+  })();
+</script>
+<!-- END: Live Calculation Script Engine -->
+</body></html>
