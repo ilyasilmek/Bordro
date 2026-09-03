@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,9 +32,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ilmek.bordro.data.GelirVergisiMode
@@ -75,7 +81,7 @@ fun PayslipEditScreen(
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 14.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).imePadding().padding(horizontal = 14.dp),
         ) {
             item {
                 Column(Modifier.fillMaxWidth().padding(vertical = 8.dp).dashedBottom()) {
@@ -121,6 +127,7 @@ fun PayslipEditScreen(
                     LabelRow("Hzm.Zammı Yıl") { DocNumberField(data.hizmetZammiYili, { v -> viewModel.update { it.copy(hizmetZammiYili = v) } }) }
                     LabelRow("Saat Ücr", badge = "BAZ") { DocNumberField(data.saatUcr, { v -> viewModel.update { it.copy(saatUcr = v) } }) }
                     LabelRow("Emk. Zam") { DocNumberField(data.emkZam, { v -> viewModel.update { it.copy(emkZam = v) } }) }
+                    RaiseControl(onApply = viewModel::applyRaise)
                     LabelRow("Çalıştığı Gün") { DocNumberField(data.calistigiGun, { v -> viewModel.update { it.copy(calistigiGun = v) } }) }
                     LabelRow("SSK Günü") { DocNumberField(data.sskGunu, { v -> viewModel.update { it.copy(sskGunu = v) } }) }
                 }
@@ -213,9 +220,16 @@ fun PayslipEditScreen(
                             modifier = Modifier.fillMaxWidth(),
                         )
                         if (data.gelirVergisiMode == GelirVergisiMode.OTO) {
+                            LabelRow("Asgari Ücret Aylık Matrahı", badge = "2026") {
+                                DocNumberField(
+                                    data.asgariUcretAylikMatrah,
+                                    { v -> viewModel.update { it.copy(asgariUcretAylikMatrah = v) } },
+                                    width = 96.dp,
+                                )
+                            }
                             Text(
-                                "${result.vergiDilimBilgi} - doğrulanmamış tahmin, gerçek bordronuzdan kontrol edin.",
-                                fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.Amber,
+                                "${result.vergiDilimBilgi} - 2026 GİB ücret tarifesi ve asgari ücret istisnası ile hesaplandı.",
+                                fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.Sky,
                             )
                         }
                         Text("Efektif Oran: %${TrNumber.format(result.efektifOranPct)}", fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.LabelText)
@@ -272,4 +286,62 @@ private fun GelirVergisiMode.turkishLabel() = when (this) {
     GelirVergisiMode.OTO -> "Otomatik (Tahmini Kademeli)"
     GelirVergisiMode.FIXED -> "Sabit Oran"
     GelirVergisiMode.MANUAL -> "Manuel Giriş"
+}
+
+/**
+ * A one-shot "apply a raise" action: typing a percent and tapping Uygula scales
+ * Saat Ücr, Emk. Zam, and every fixed-rate hakediş kalemi (İaşe Günü, Hizmet
+ * Zammı, ...) by that percentage. Rows derived from Saat Ücr/Emk. Zam (Normal
+ * Çalış, GŞT %10, Vardiya Prim, ...) update automatically since their amount is
+ * computed from those two fields - no separate scaling needed for them.
+ */
+@Composable
+private fun RaiseControl(onApply: (percent: Double, daysAtOldRate: Double, daysAtNewRate: Double) -> Unit) {
+    var percentText by remember { mutableStateOf("") }
+    var partial by remember { mutableStateOf(false) }
+    var oldDaysText by remember { mutableStateOf("") }
+    var newDaysText by remember { mutableStateOf("") }
+
+    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        LabelRow("Zam Uygula (%)") {
+            DocTextField(percentText, { percentText = it }, width = 70.dp, numeric = true)
+            TextButton(onClick = {
+                val pct = percentText.replace(',', '.').toDoubleOrNull() ?: return@TextButton
+                if (partial) {
+                    val oldDays = oldDaysText.replace(',', '.').toDoubleOrNull() ?: return@TextButton
+                    val newDays = newDaysText.replace(',', '.').toDoubleOrNull() ?: return@TextButton
+                    onApply(pct, oldDays, newDays)
+                } else {
+                    onApply(pct, 0.0, 1.0)
+                }
+                percentText = ""
+            }) {
+                Text("Uygula", fontFamily = Bordro.Mono, fontSize = 11.sp)
+            }
+        }
+        Text(
+            "Saat Ücr, Emk. Zam, sabit katsayılı hakediş kalemlerine (İaşe Günü, Hizmet Zammı vb.) ve " +
+                "\"Zam Uygula ile artar\" işaretli kesinti/yardım kalemlerine (Birleştirilmiş, Sendika Aidatı) uygulanır.",
+            fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.LabelText,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+            Checkbox(checked = partial, onCheckedChange = { partial = it })
+            Text(
+                "İlk ay: gün bazlı kısmi uygula (dönem, zam tarihine bölünüyorsa)",
+                fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.LabelText,
+            )
+        }
+        if (partial) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(top = 2.dp)) {
+                LabelRow("Eski Oran Gün") { DocTextField(oldDaysText, { oldDaysText = it }, width = 56.dp, align = TextAlign.End, numeric = true) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                LabelRow("Yeni Oran Gün") { DocTextField(newDaysText, { newDaysText = it }, width = 56.dp, align = TextAlign.End, numeric = true) }
+            }
+            Text(
+                "Örn. 15 Ağustos-14 Eylül döneminde 1 Eylül'den geçerli zam için: Eski Oran Gün=17, Yeni Oran Gün=14.",
+                fontFamily = Bordro.Mono, fontSize = 9.sp, color = Bordro.Sky,
+            )
+        }
+    }
 }

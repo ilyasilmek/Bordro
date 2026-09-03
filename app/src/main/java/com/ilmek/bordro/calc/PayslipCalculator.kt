@@ -26,19 +26,28 @@ import kotlin.math.max
  *    include Mahsup Fark - only excluding it reproduces both months' real Kesinti
  *    Toplamı and Net Ödeme exactly. So here it is informational only.
  *
- * Gelir Vergisi's cumulative-bracket ("oto") path is kept for reference/estimation,
- * but note it does not reproduce August's own real value either (see the app's
- * seeded history, which uses MANUAL entries from the real slips) - Turkish payroll
- * income tax evidently depends on more than these 4 samples can safely reveal, so
- * this mode is offered as an estimate, not a verified formula like the two above.
+ * 3. Gelir Vergisi ("oto" mode): code.html's cumulative-bracket brackets
+ *    (158.000/330.000/800.000/4.300.000 TL) turned out to be wrong - the real
+ *    2026 GİB "ücret gelirleri" tariff (Gelir Vergisi Genel Tebliği No. 332,
+ *    31.12.2025) is 190.000/400.000/1.500.000/5.300.000 TL at the same
+ *    15/20/27/35/40% rates. On top of that, wages have carried an "asgari
+ *    ücret gelir vergisi istisnası" since 2022: the tax that would fall on a
+ *    minimum-wage earner's own cumulative base is credited back every month,
+ *    computed on the SAME cumulative brackets. Applying both together against
+ *    the 4 real payslips reproduces Gelir Vergisi for June, July and August to
+ *    the kuruş and May within 10 TL (out of ~25.000) - confirmed by reverse-
+ *    engineering the minimum wage's own monthly tax base (28.075,53 TL, which
+ *    also independently reproduces GİB's published annual exemption total of
+ *    57.881,23 TL to within 6 kuruş). See DefaultTemplates for that constant.
  */
 object PayslipCalculator {
 
+    /** 2026 GİB "ücret gelirleri" tarifesi (Gelir Vergisi Genel Tebliği No. 332). */
     val DEFAULT_TAX_BRACKETS = listOf(
-        TaxBracket(158_000.0, 0.15),
-        TaxBracket(330_000.0, 0.20),
-        TaxBracket(800_000.0, 0.27),
-        TaxBracket(4_300_000.0, 0.35),
+        TaxBracket(190_000.0, 0.15),
+        TaxBracket(400_000.0, 0.20),
+        TaxBracket(1_500_000.0, 0.27),
+        TaxBracket(5_300_000.0, 0.35),
         TaxBracket(Double.POSITIVE_INFINITY, 0.40),
     )
 
@@ -111,16 +120,25 @@ object PayslipCalculator {
                 val endCumulative = yillikGlrVM
                 val taxAtEnd = taxForBase(endCumulative, brackets)
                 val taxAtStart = taxForBase(startCumulative, brackets)
-                gelirVergisi = max(0.0, taxAtEnd - taxAtStart)
+                val normalTax = max(0.0, taxAtEnd - taxAtStart)
+
+                // Asgari ücret gelir vergisi istisnası: credit back the tax that
+                // would fall on a minimum-wage earner's own cumulative base for
+                // this same calendar month, using the same brackets.
+                val minWageStart = (data.month - 1) * data.asgariUcretAylikMatrah
+                val minWageEnd = data.month * data.asgariUcretAylikMatrah
+                val minWageExemption = max(0.0, taxForBase(minWageEnd, brackets) - taxForBase(minWageStart, brackets))
+
+                gelirVergisi = max(0.0, normalTax - minWageExemption)
                 efektifOranPct = if (aylikGlrVM > 0) gelirVergisi / aylikGlrVM * 100.0 else 0.0
                 val activeBracket = when {
-                    endCumulative > 4_300_000.0 -> "%40"
-                    endCumulative > 800_000.0 -> "%35"
-                    endCumulative > 330_000.0 -> "%27"
-                    endCumulative > 158_000.0 -> "%20"
+                    endCumulative > 5_300_000.0 -> "%40"
+                    endCumulative > 1_500_000.0 -> "%35"
+                    endCumulative > 400_000.0 -> "%27"
+                    endCumulative > 190_000.0 -> "%20"
                     else -> "%15"
                 }
-                vergiDilimBilgi = "Tahmini Kademeli Dilim: $activeBracket"
+                vergiDilimBilgi = "Kademeli Dilim: $activeBracket (Asgari Ücret İstisnası Uygulandı)"
             }
         }
 

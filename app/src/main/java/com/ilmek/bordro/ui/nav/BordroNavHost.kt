@@ -7,15 +7,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ilmek.bordro.data.EmployeeStatus
 import com.ilmek.bordro.data.PayslipRepository
 import com.ilmek.bordro.ui.LambdaViewModelFactory
 import com.ilmek.bordro.ui.edit.PayslipEditScreen
 import com.ilmek.bordro.ui.edit.PayslipEditViewModel
 import com.ilmek.bordro.ui.list.PayslipListScreen
 import com.ilmek.bordro.ui.list.PayslipListViewModel
+import com.ilmek.bordro.ui.status.StatusPickerScreen
 
 private const val ROUTE_LIST = "list"
-private const val ROUTE_EDIT = "edit/{payslipId}"
+private const val ROUTE_STATUS_PICKER = "status_picker"
+private const val ROUTE_EDIT = "edit/{payslipId}?status={status}"
 
 @Composable
 fun BordroNavHost(repository: PayslipRepository) {
@@ -28,18 +31,29 @@ fun BordroNavHost(repository: PayslipRepository) {
             )
             PayslipListScreen(
                 viewModel = viewModel,
-                onAddNew = { navController.navigate("edit/0") },
+                onAddNew = { navController.navigate(ROUTE_STATUS_PICKER) },
                 onOpen = { id -> navController.navigate("edit/$id") },
+            )
+        }
+        composable(ROUTE_STATUS_PICKER) {
+            StatusPickerScreen(
+                onSelect = { status -> navController.navigate("edit/0?status=${status.name}") },
             )
         }
         composable(
             ROUTE_EDIT,
-            arguments = listOf(navArgument("payslipId") { type = NavType.LongType }),
+            arguments = listOf(
+                navArgument("payslipId") { type = NavType.LongType },
+                navArgument("status") { type = NavType.StringType; defaultValue = EmployeeStatus.GAZI.name },
+            ),
         ) { backStackEntry ->
             val payslipId = backStackEntry.arguments?.getLong("payslipId") ?: 0L
+            val status = backStackEntry.arguments?.getString("status")
+                ?.let { runCatching { EmployeeStatus.valueOf(it) }.getOrNull() }
+                ?: EmployeeStatus.GAZI
             val viewModel: PayslipEditViewModel = viewModel(
                 key = "edit-$payslipId",
-                factory = LambdaViewModelFactory { PayslipEditViewModel(repository, payslipId) },
+                factory = LambdaViewModelFactory { PayslipEditViewModel(repository, payslipId, status) },
             )
             PayslipEditScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
         }

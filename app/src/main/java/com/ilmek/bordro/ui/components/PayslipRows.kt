@@ -195,6 +195,10 @@ fun DeductionLine(
                     Text("Gelir vergisi matrahını azaltır", fontFamily = Bordro.Mono, fontSize = 10.sp, color = Bordro.LabelText)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = item.scalesWithRaise, onCheckedChange = { onChange(item.copy(scalesWithRaise = it)) })
+                    Text("Zam Uygula ile birlikte artar (TİS'e bağlı yardım/aidat)", fontFamily = Bordro.Mono, fontSize = 10.sp, color = Bordro.LabelText)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Sil", tint = Bordro.Red) }
                     Text("Kalemi sil", fontFamily = Bordro.Mono, fontSize = 10.sp, color = Bordro.Red)
                 }

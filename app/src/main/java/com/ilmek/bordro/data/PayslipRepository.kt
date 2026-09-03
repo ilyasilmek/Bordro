@@ -10,6 +10,10 @@ class PayslipRepository(private val dao: PayslipDao) {
 
     suspend fun get(id: Long): Payslip? = dao.getById(id)?.toDomain()
 
+    /** The most recently saved payslip regardless of period, used to carry forward
+     * rates (Saat Ücr, Emk. Zam, recurring deductions) into a freshly created one. */
+    suspend fun mostRecent(): Payslip? = dao.getMostRecent()?.toDomain()
+
     /** End-of-month cumulative Yıllık Glr.VM for the month right before (year, month), if saved. */
     suspend fun suggestPreviousCumulative(year: Int, month: Int): Double {
         val prev = dao.getPreviousMonth(year, month)?.toDomain() ?: return 0.0

@@ -37,10 +37,16 @@ object SeedData {
         amount: Double,
         kind: DeductionKind = DeductionKind.DEDUCT_ABS,
         reducesTaxBase: Boolean = false,
-    ) = DeductionItem(name = name, amount = amount, kind = kind, reducesTaxBase = reducesTaxBase)
+    ) = DeductionItem(
+        name = name, amount = amount, kind = kind, reducesTaxBase = reducesTaxBase,
+        // Matches DefaultTemplates.standardDeductions() - these two rows track Saat
+        // Ücr/Emk. Zam per the 31. Dönem TİS (Madde 69, Madde 18), so a payslip
+        // built by carrying forward from this seed month keeps that flag too.
+        scalesWithRaise = name == "Birleştirilmiş" || name == "Sendika Aidatı",
+    )
 
-    private const val IASE_GUNLUK = 301.1575
-    private const val HIZMET_YILLIK = 24.67
+    private const val IASE_GUNLUK = DefaultTemplates.IASE_GUNLUK
+    private const val HIZMET_YILLIK = DefaultTemplates.HIZMET_YILLIK
 
     val mayis2026 = PayslipData(
         year = 2026, month = 5, periodLabel = "05/2026 (15.04.2026-14.05.2026)",

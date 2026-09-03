@@ -19,6 +19,9 @@ interface PayslipDao {
     @Query("SELECT * FROM payslips WHERE (year * 12 + month) < (:year * 12 + :month) ORDER BY year DESC, month DESC LIMIT 1")
     suspend fun getPreviousMonth(year: Int, month: Int): PayslipEntity?
 
+    @Query("SELECT * FROM payslips ORDER BY year DESC, month DESC LIMIT 1")
+    suspend fun getMostRecent(): PayslipEntity?
+
     @Insert
     suspend fun insert(entity: PayslipEntity): Long
 

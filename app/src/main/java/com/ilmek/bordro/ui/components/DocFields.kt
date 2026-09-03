@@ -7,9 +7,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -62,7 +63,17 @@ fun DocNumberField(
     bold: Boolean = false,
     enabled: Boolean = true,
 ) {
-    var text by rememberSaveable(value) { mutableStateOf(if (value == 0.0) "" else plain(value)) }
+    // A plain remember (not rememberSaveable keyed on value) plus a LaunchedEffect that
+    // re-syncs whenever the upstream value changes - e.g. via applyRaise's batch update to
+    // a whole list of items - regardless of how LazyColumn happens to key/recycle this row.
+    // rememberSaveable(value) alone left this stale after such batch updates in testing.
+    var text by remember { mutableStateOf(if (value == 0.0) "" else plain(value)) }
+    LaunchedEffect(value) {
+        val currentAsDouble = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+        if (currentAsDouble != value) {
+            text = if (value == 0.0) "" else plain(value)
+        }
+    }
     DocTextField(
         value = text,
         onValueChange = { new ->

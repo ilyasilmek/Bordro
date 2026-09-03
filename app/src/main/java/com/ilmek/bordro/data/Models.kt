@@ -73,6 +73,17 @@ data class DeductionItem(
     val amount: Double = 0.0,
     val kind: DeductionKind = DeductionKind.DEDUCT_ABS,
     val reducesTaxBase: Boolean = false,
+    /**
+     * TCDD's 31. Dönem TİS ties some payments to the base wage rate: Madde 69
+     * raises Birleştirilmiş Sosyal Yardım by the same percentage as each wage
+     * zam, and Sendika Aidatı (Madde 18, per 6356 sayılı Kanun's 1-günlük-ücret
+     * dues formula) moves in lock-step with Saat Ücr + Emk. Zam in the real
+     * reference payslips. Items with this set are scaled by PayslipEditViewModel
+     * .applyRaise the same way Saat Ücr is; one-off items (Terfi Farkı, Mahsup
+     * Kesintisi) or flat dues (Spor Aidatı) and legally-fixed amounts (Vergiden
+     * Muaf) are not.
+     */
+    val scalesWithRaise: Boolean = false,
 )
 
 @Serializable
@@ -104,9 +115,19 @@ data class PayslipData(
     val earnings: List<EarningItem> = emptyList(),
     val deductions: List<DeductionItem> = emptyList(),
 
-    val gelirVergisiMode: GelirVergisiMode = GelirVergisiMode.MANUAL,
+    val gelirVergisiMode: GelirVergisiMode = GelirVergisiMode.OTO,
     val gelirVergisiFixedPct: Double = 0.0,
     val gelirVergisiManual: Double = 0.0,
+
+    /**
+     * Minimum wage's own monthly income-tax base, used by OTO mode to apply the
+     * "asgari ücret gelir vergisi istisnası". Reverse-engineered from the 4 real
+     * payslips (see PayslipCalculator) and independently confirmed against
+     * GİB's published 2026 figures (4.211,33 TL/month exemption while this stays
+     * in the first bracket, 57.881,23 TL/year total). Changes when the minimum
+     * wage is updated (typically every January) - edit here for later years.
+     */
+    val asgariUcretAylikMatrah: Double = 28_075.53,
 
     /** Cumulative Yıllık Glr.VM carried in from the END of the previous month. */
     val yillikGlrVMOnceki: Double = 0.0,
