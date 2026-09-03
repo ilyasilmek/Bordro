@@ -208,6 +208,32 @@
 <input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="emkZam" name="emkZam" type="text" value="19,050000"/>
 </div>
 </div>
+<!-- BEGIN: Zam Uygula (31. Dönem TİS zammı) -->
+<div class="no-print flex flex-col gap-1 bg-sky-50/60 border border-sky-200 rounded p-1.5 mt-1">
+<div class="flex items-center justify-between gap-1">
+<label class="text-sky-900 font-bold shrink-0" for="zamOrani" title="Saat Ücr, Emk. Zam, İaşe Günü/Hizmet Zammı katsayıları ve Birleştirilmiş/Sendika Aidatı'na uygulanır">Zam Uygula (%)</label>
+<div class="flex items-center gap-1">
+<input class="w-16 text-xs font-bold text-right text-slate-900 bg-white border border-sky-300 rounded px-1.5 py-0.5 focus:border-sky-600 focus:ring-1 focus:ring-sky-600" id="zamOrani" name="zamOrani" type="text" value=""/>
+<button class="px-2 py-0.5 bg-sky-700 hover:bg-sky-600 text-white text-[10px] font-semibold uppercase tracking-wide rounded shadow-sm transition" id="btnZamUygula" onclick="applyZam();" type="button">Uygula</button>
+</div>
+</div>
+<label class="flex items-center gap-1.5 text-[10px] text-slate-600">
+<input class="rounded border-slate-400" id="zamKismi" name="zamKismi" type="checkbox"/>
+İlk ay: gün bazlı kısmi uygula (dönem, zam tarihine bölünüyorsa)
+</label>
+<div class="grid grid-cols-2 gap-1.5" id="zamKismiAlanlari" style="display:none;">
+<div class="flex items-center justify-between gap-1">
+<label class="text-[10px] text-slate-600 shrink-0" for="zamEskiGun">Eski Oran Gün</label>
+<input class="w-14 text-xs text-right bg-white border border-slate-300 rounded px-1 py-0.5" id="zamEskiGun" name="zamEskiGun" type="text" value=""/>
+</div>
+<div class="flex items-center justify-between gap-1">
+<label class="text-[10px] text-slate-600 shrink-0" for="zamYeniGun">Yeni Oran Gün</label>
+<input class="w-14 text-xs text-right bg-white border border-slate-300 rounded px-1 py-0.5" id="zamYeniGun" name="zamYeniGun" type="text" value=""/>
+</div>
+</div>
+<div class="text-[9.5px] text-sky-700" id="zamOrnekMetin">Örn. 15 Ağustos-14 Eylül döneminde 1 Eylül'den geçerli zam için: Eski Oran Gün=17, Yeni Oran Gün=14.</div>
+</div>
+<!-- END: Zam Uygula -->
 <div class="flex items-center justify-between gap-1">
 <label class="text-slate-600 shrink-0" for="brtAylk">Brt Aylk</label>
 <div class="flex items-center w-36 2xl:w-44">
@@ -307,6 +333,39 @@
 <div class="grid grid-cols-12 gap-1.5">
 <input class="col-span-5 text-[11px] 2xl:text-xs text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="base" id="urSaat" name="urSaat" title="Saat" type="text" value="72,00"/>
 <input class="col-span-7 text-[11px] 2xl:text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="urTutar" name="urTutar" title="Tutar (Saat x Ücret)" type="text" value="29.162,16"/>
+</div>
+</div>
+<!-- Vardiya Prim -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] 2xl:text-xs text-slate-700 font-medium">Vardiya Prim</span>
+<span class="no-print text-[8px] 2xl:text-[9px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam) x %10">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1.5">
+<input class="col-span-5 text-[11px] 2xl:text-xs text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="vardiya10" id="vpSaat" name="vpSaat" title="Saat" type="text" value="0,00"/>
+<input class="col-span-7 text-[11px] 2xl:text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="vpTutar" name="vpTutar" title="Tutar (Saat x (Ücret+Zam) x %10)" type="text" value="0,00"/>
+</div>
+</div>
+<!-- Gece Çalışma -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] 2xl:text-xs text-slate-700 font-medium">Gece Çalışma</span>
+<span class="no-print text-[8px] 2xl:text-[9px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam) x %15">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1.5">
+<input class="col-span-5 text-[11px] 2xl:text-xs text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="gece15" id="gcSaat" name="gcSaat" title="Saat" type="text" value="0,00"/>
+<input class="col-span-7 text-[11px] 2xl:text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="gcTutar" name="gcTutar" title="Tutar (Saat x (Ücret+Zam) x %15)" type="text" value="0,00"/>
+</div>
+</div>
+<!-- Fzl Mes %100 -->
+<div class="flex flex-col gap-0.5">
+<div class="flex justify-between items-center">
+<span class="text-[11px] 2xl:text-xs text-slate-700 font-medium">Fzl Mes %100</span>
+<span class="no-print text-[8px] 2xl:text-[9px] bg-sky-100 text-sky-700 px-1 rounded font-semibold border border-sky-200" title="Saat x (Saat Ücreti + Emk. Zam) x %200">OTO</span>
+</div>
+<div class="grid grid-cols-12 gap-1.5">
+<input class="col-span-5 text-[11px] 2xl:text-xs text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-hour" data-calc-rule="mesai200" id="fmSaat" name="fmSaat" title="Saat" type="text" value="0,00"/>
+<input class="col-span-7 text-[11px] 2xl:text-xs font-bold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700 earning-amount" id="fmTutar" name="fmTutar" title="Tutar (Saat x (Ücret+Zam) x %200)" type="text" value="0,00"/>
 </div>
 </div>
 <!-- İaşe Günü -->
@@ -486,10 +545,13 @@
 </div>
 </div>
 <div class="flex items-center justify-between gap-1">
-<label class="text-slate-600 shrink-0" for="yillikGlrVM">Yıllık Glr.VM</label>
+<div class="flex items-center gap-1">
+<label class="text-slate-600 shrink-0" for="yillikGlrVM" title="Bu ay başlamadan önceki kümülatif gelir vergisi matrahı">Yıllık Glr.VM (Önceki)</label>
+<span class="no-print text-[8px] 2xl:text-[9px] bg-indigo-100 text-indigo-800 px-1 rounded font-bold border border-indigo-300" title="Kümülatif Matrah">KÜM</span>
+</div>
 <div class="flex items-center w-36 2xl:w-44">
 <span class="mr-1 text-slate-500">:</span>
-<input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="yillikGlrVM" name="yillikGlrVM" type="text" value="1.071.964,16"/>
+<input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="yillikGlrVM" name="yillikGlrVM" type="text" value="958.087,45"/>
 </div>
 </div>
 <div class="flex items-center justify-between gap-1">
@@ -500,6 +562,20 @@
 <div class="flex items-center w-36 2xl:w-44">
 <span class="mr-1 text-slate-500">:</span>
 <input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="aylikGlrVM" name="aylikGlrVM" type="text" value="113.876,71"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1 text-[10.5px] 2xl:text-xs text-slate-500">
+<label class="shrink-0" for="ayNo" title="Asgari ücret istisnası hesabı için takvim ayı">Ay No (1-12)</label>
+<div class="flex items-center w-36 2xl:w-44">
+<span class="mr-1 text-slate-500">:</span>
+<input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="ayNo" name="ayNo" type="text" value="8"/>
+</div>
+</div>
+<div class="flex items-center justify-between gap-1 text-[10.5px] 2xl:text-xs text-slate-500">
+<label class="shrink-0" for="asgariUcretMatrah" title="Asgari ücretin aylık gelir vergisi matrahı - yıl değişince güncellenmeli">Asg.Ücr.Ayl.Matrah</label>
+<div class="flex items-center w-36 2xl:w-44">
+<span class="mr-1 text-slate-500">:</span>
+<input class="w-full text-xs 2xl:text-sm font-semibold text-right bg-slate-50/80 border border-slate-300 rounded px-1.5 py-0.5 2xl:py-1 focus:bg-white focus:border-slate-700 focus:ring-1 focus:ring-slate-700" id="asgariUcretMatrah" name="asgariUcretMatrah" type="text" value="28.075,53"/>
 </div>
 </div>
 <div class="flex items-center justify-between gap-1">
@@ -639,6 +715,36 @@
       return isNeg ? "-" + result : result;
     }
 
+    // İaşe Günü ve Hizmet Zammı katsayıları - Zam Uygula bunları da ölçeklediği için
+    // sabit literal değil, güncellenebilir değişken olarak tutulur.
+    var IASE_GUNLUK_KATSAYI = 301.1575;
+    var HIZMET_YILLIK_KATSAYI = 24.67;
+
+    // 2026 GİB "ücret gelirleri" tarifesi (Gelir Vergisi Genel Tebliği No. 332, 31.12.2025)
+    var TAX_BRACKETS = [
+      { limit: 190000, rate: 0.15 },
+      { limit: 400000, rate: 0.20 },
+      { limit: 1500000, rate: 0.27 },
+      { limit: 5300000, rate: 0.35 },
+      { limit: Infinity, rate: 0.40 }
+    ];
+
+    function getTaxForBase(totalBase) {
+      if (totalBase <= 0) return 0;
+      var tax = 0;
+      var prevLimit = 0;
+      for (var i = 0; i < TAX_BRACKETS.length; i++) {
+        var bracket = TAX_BRACKETS[i];
+        if (totalBase > prevLimit) {
+          var taxableInBracket = Math.min(totalBase, bracket.limit) - prevLimit;
+          tax += taxableInBracket * bracket.rate;
+        }
+        if (totalBase <= bracket.limit) break;
+        prevLimit = bracket.limit;
+      }
+      return tax;
+    }
+
     // Exact original baseline values dictionary for factory reset
     var originalBordroData = {
       islYS: "01/0104/03",
@@ -668,6 +774,12 @@
       uiTutar: "25.921,92",
       urSaat: "72,00",
       urTutar: "29.162,16",
+      vpSaat: "0,00",
+      vpTutar: "0,00",
+      gcSaat: "0,00",
+      gcTutar: "0,00",
+      fmSaat: "0,00",
+      fmTutar: "0,00",
       iaseSaat: "8,00",
       iaseTutar: "2.409,26",
       gstSaat: "155,00",
@@ -689,7 +801,9 @@
       sskMatrahi: "131.195,50",
       sskPrimIsci: "11.807,60",
       sskPrimIsv: "18.695,36",
-      yillikGlrVM: "1.071.964,16",
+      yillikGlrVM: "958.087,45",
+      ayNo: "8",
+      asgariUcretMatrah: "28.075,53",
       aylikGlrVM: "113.876,71",
       gelirVergisi: "25.131,61",
       damgaVergisi: "745,07",
@@ -719,7 +833,9 @@
     window.zeroAllValues = function() {
       var numericIds = [
         'ncSaat', 'ncTutar', 'htSaat', 'htTutar', 'ubgtSaat', 'ubgtTutar',
-        'uiSaat', 'uiTutar', 'urSaat', 'urTutar', 'iaseSaat', 'iaseTutar',
+        'uiSaat', 'uiTutar', 'urSaat', 'urTutar',
+        'vpSaat', 'vpTutar', 'gcSaat', 'gcTutar', 'fmSaat', 'fmTutar',
+        'iaseSaat', 'iaseTutar',
         'gstSaat', 'gstTutar', 'hzmSaat', 'hzmTutar', 'gmsSaat', 'gmsTutar',
         'kesBirlestirilm', 'kesSendika', 'kesSpor', 'kesVergiMuaf', 'kesTerfiFark',
         'kesMahsup', 'kesIlaveTutar', 'calistigiGun', 'sskGunu', 'sskMatrahi',
@@ -771,17 +887,31 @@
           // GŞT %10 = GŞT Saati * Saat Ücreti * 0.10
           calcAmount = hours * saatUcr * 0.10;
           break;
+        case 'vardiya10':
+          // Vardiya Prim = Saat x (Saat Ücreti + Emk. Zam) x %10 (4 gerçek bordroya karşı doğrulandı)
+          calcAmount = hours * effectiveRate * 0.10;
+          break;
+        case 'gece15':
+          // Gece Çalışma = Saat x (Saat Ücreti + Emk. Zam) x %15 (4 gerçek bordroya karşı doğrulandı)
+          calcAmount = hours * effectiveRate * 0.15;
+          break;
+        case 'mesai200':
+          // Fzl Mes %100 = Saat x (Saat Ücreti + Emk. Zam) x %200 (fazla mesai, taban ücretin 2 katı)
+          calcAmount = hours * effectiveRate * 2.0;
+          break;
         case 'gms24':
-          // GMŞ %(17+7)24: 155 saat için orijinal bordrodaki 15.067,12 TL (saat başına ~97.20722 TL)
-          calcAmount = hours * (15067.12 / 155.0);
+          // GMŞ %(17+7)24 = Saat x (Saat Ücreti + Emk. Zam) x %24
+          calcAmount = hours * effectiveRate * 0.24;
           break;
         case 'iase':
-          // İaşe Günü: 8 gün = 2.409,26 TL (günlük ~301.1575)
-          calcAmount = hours * (2409.26 / 8.0);
+          // İaşe Günü: günlük katsayı (başlangıçta 301,1575 TL - 4 aya karşı doğrulandı).
+          // Zam Uygula bu katsayıyı da ölçekler, bu yüzden sabit değil değişkende tutulur.
+          calcAmount = hours * IASE_GUNLUK_KATSAYI;
           break;
         case 'hizmet':
-          // Hizmet Zammı: 15 yıl/gün = 370,05 TL (katsayı ~24.67)
-          calcAmount = hours * (370.05 / 15.0);
+          // Hizmet Zammı: Kıdem/Hizmet yılı x katsayı (başlangıçta 24,67 TL - 4 aya karşı doğrulandı).
+          // Zam Uygula bu katsayıyı da ölçekler, bu yüzden sabit değil değişkende tutulur.
+          calcAmount = hours * HIZMET_YILLIK_KATSAYI;
           break;
         default:
           calcAmount = hours * saatUcr;
@@ -798,6 +928,9 @@
         { hourId: 'ubgtSaat', amountId: 'ubgtTutar', rule: 'base' },
         { hourId: 'uiSaat', amountId: 'uiTutar', rule: 'base' },
         { hourId: 'urSaat', amountId: 'urTutar', rule: 'base' },
+        { hourId: 'vpSaat', amountId: 'vpTutar', rule: 'vardiya10' },
+        { hourId: 'gcSaat', amountId: 'gcTutar', rule: 'gece15' },
+        { hourId: 'fmSaat', amountId: 'fmTutar', rule: 'mesai200' },
         { hourId: 'iaseSaat', amountId: 'iaseTutar', rule: 'iase' },
         { hourId: 'gstSaat', amountId: 'gstTutar', rule: 'gst10' },
         { hourId: 'hzmSaat', amountId: 'hzmTutar', rule: 'hizmet' },
@@ -807,6 +940,52 @@
       rules.forEach(function(item) {
         calculateEarningItem(item.hourId, item.amountId, item.rule);
       });
+    };
+
+    /**
+     * Zam Uygula: TCDD'nin 15'i-14'ü arası bordro döneminde bir zam ayın 1'inden
+     * geçerli olduğunda, o ay eski oranla yeni oranın gün sayısına göre ağırlıklı
+     * ortalaması alınır (Eski Oran Gün / Yeni Oran Gün boş bırakılırsa tam ay zammı
+     * uygulanır). Saat Ücr, Emk. Zam, İaşe Günü/Hizmet Zammı katsayıları ve
+     * Birleştirilmiş/Sendika Aidatı (31. Dönem TİS Madde 69 ve Madde 18/6356 sayılı
+     * Kanun gereği ücrete bağlı kalemler) aynı oranda ölçeklenir.
+     */
+    window.applyZam = function() {
+      var pct = parseTRNumber(document.getElementById('zamOrani') ? document.getElementById('zamOrani').value : "");
+      if (!pct) return;
+
+      var kismi = document.getElementById('zamKismi') ? document.getElementById('zamKismi').checked : false;
+      var eskiGun = 0, yeniGun = 1;
+      if (kismi) {
+        eskiGun = parseTRNumber(document.getElementById('zamEskiGun') ? document.getElementById('zamEskiGun').value : "0");
+        yeniGun = parseTRNumber(document.getElementById('zamYeniGun') ? document.getElementById('zamYeniGun').value : "0");
+        if (eskiGun + yeniGun <= 0) return;
+      }
+      var totalGun = eskiGun + yeniGun;
+
+      function blended(oldVal) {
+        var newVal = oldVal * (1 + pct / 100);
+        return (eskiGun * oldVal + yeniGun * newVal) / totalGun;
+      }
+
+      var saatUcrEl = document.getElementById('saatUcr');
+      var emkZamEl = document.getElementById('emkZam');
+      var birlestirilmEl = document.getElementById('kesBirlestirilm');
+      var sendikaEl = document.getElementById('kesSendika');
+
+      if (saatUcrEl) saatUcrEl.value = formatTRNumber(blended(parseTRNumber(saatUcrEl.value)), 6);
+      if (emkZamEl) emkZamEl.value = formatTRNumber(blended(parseTRNumber(emkZamEl.value)), 6);
+      if (birlestirilmEl) birlestirilmEl.value = formatTRNumber(blended(parseTRNumber(birlestirilmEl.value)));
+      if (sendikaEl) sendikaEl.value = formatTRNumber(blended(parseTRNumber(sendikaEl.value)));
+
+      IASE_GUNLUK_KATSAYI = blended(IASE_GUNLUK_KATSAYI);
+      HIZMET_YILLIK_KATSAYI = blended(HIZMET_YILLIK_KATSAYI);
+
+      var zamOraniEl = document.getElementById('zamOrani');
+      if (zamOraniEl) zamOraniEl.value = "";
+
+      calculateAllEarningsFromHours();
+      recalculatePayslip();
     };
 
     // Main calculation routine: Gelir, Yasal Kesintiler (SSK, Gelir Vergisi, Damga Vergisi), Kesinti Toplamı, Net Ödeme
@@ -836,9 +1015,12 @@
       var elKesintiTopl = document.getElementById('kesintiTopl');
       var elNetOdeme = document.getElementById('netOdeme');
 
-      var iaseTutar = parseTRNumber(document.getElementById('iaseTutar') ? document.getElementById('iaseTutar').value : "0");
+      var iaseGunSayisi = parseTRNumber(document.getElementById('iaseSaat') ? document.getElementById('iaseSaat').value : "0");
       var sendikaVal = parseTRNumber(document.getElementById('kesSendika') ? document.getElementById('kesSendika').value : "0");
       var vergiMuafVal = parseTRNumber(document.getElementById('kesVergiMuaf') ? document.getElementById('kesVergiMuaf').value : "0");
+      var yillikGlrVMOnceki = parseTRNumber(document.getElementById('yillikGlrVM') ? document.getElementById('yillikGlrVM').value : "0");
+      var ayNo = parseInt(document.getElementById('ayNo') ? document.getElementById('ayNo').value : "8", 10) || 8;
+      var asgariUcretMatrah = parseTRNumber(document.getElementById('asgariUcretMatrah') ? document.getElementById('asgariUcretMatrah').value : "28075.53");
 
       // 2. Compute or update Statutory Items (SSK Matrahı, SSK Prim İşçi/İşveren, Aylık Glr.VM, Gelir Vergisi, Damga Vergisi)
       if (totalEarnings <= 0.0001) {
@@ -851,12 +1033,10 @@
         if (elDamgaVergisi && manualTargetId !== 'damgaVergisi') elDamgaVergisi.value = "0,00";
       } else {
         // Calculate dynamically unless the specific field is being manually edited right now
-        // SSK Matrahı = Gelir Toplamı - İaşe İstisnası (Orijinal: 133.595,50 - 2.409,26 = 131.186,24 -> Yuvarlama/tavanla 131.195,50)
-        var sskMatrah = Math.max(0, totalEarnings - iaseTutar);
-        // If close to original reference baseline (133595.50), maintain exact official TCDD figures (131.195,50)
-        if (Math.abs(totalEarnings - 133595.50) < 1.0) {
-          sskMatrah = 131195.50;
-        }
+        // SSK Matrahı = Gelir Toplamı - (300,00 TL x İaşe Günü). SSK'nın yemek/iaşe istisnası sabit
+        // 300 TL/gündür (gerçekte ödenen ~301,16 TL/gün değil) - 4 gerçek bordroya karşı kuruşuna
+        // kadar doğrulandı; eski kod sadece Ağustos'un tam sayısını hardcode ediyordu.
+        var sskMatrah = Math.max(0, totalEarnings - (300.00 * iaseGunSayisi));
         if (elSskMatrahi && manualTargetId !== 'sskMatrahi') {
           elSskMatrahi.value = formatTRNumber(sskMatrah);
         }
@@ -881,38 +1061,44 @@
           elAylikGlrVM.value = formatTRNumber(aylikMatrah);
         }
 
-        // Gelir Vergisi: Efektif vergi dilimi oranı (~%22.0689 veya Aylık VM üzerinden)
-        // Orijinal bordroda 113.876,71 TL matrah için 25.131,61 TL (oran ~ 0.220691)
+        // Gelir Vergisi: 2026 GİB kademeli tarifesi (190k/400k/1,5M/5,3M TL @ %15/20/27/35/40)
+        // uygulanır, ardından asgari ücret gelir vergisi istisnası (2022'den beri yürürlükte:
+        // asgari ücrete isabet eden vergi, hesaplanan vergiden mahsup edilir) düşülür. Bu iki
+        // düzeltme birlikte 4 gerçek bordronun 3'ünde kuruşuna kadar, 4.'sünde 10 TL farkla tutar
+        // (eski kod hem yanlış dilimler hem de sabit bir efektif oran kullanıyordu).
         if (elGelirVergisi && manualTargetId !== 'gelirVergisi') {
-          var gvOran = 25131.61 / 113876.71; // ~0.2206913
-          var gv = aylikMatrah * gvOran;
+          var yillikGlrVMSonu = yillikGlrVMOnceki + aylikMatrah;
+          var normalVergi = Math.max(0, getTaxForBase(yillikGlrVMSonu) - getTaxForBase(yillikGlrVMOnceki));
+
+          var minAyBasi = (ayNo - 1) * asgariUcretMatrah;
+          var minAySonu = ayNo * asgariUcretMatrah;
+          var asgariUcretIstisnasi = Math.max(0, getTaxForBase(minAySonu) - getTaxForBase(minAyBasi));
+
+          var gv = Math.max(0, normalVergi - asgariUcretIstisnasi);
           elGelirVergisi.value = formatTRNumber(gv);
         }
 
-        // Damga Vergisi: Binde ~7.59 (Damga vergisi istisna düşülmüş matrah üzerinden)
-        // Orijinal bordroda 133.595,50 TL gelir için 745,07 TL (oran ~0.005577 veya istisna sonrası binde 7.59)
+        // Damga Vergisi: Binde ~5.679 (SSK Matrahı üzerinden - orijinal Ağustos bordrosuna karşı
+        // doğrulandı: 745,07 / 131.195,50; eski kod Gelir Toplamı üzerinden sabit bir oran
+        // uyguluyordu, bu da SSK Matrahı değiştiğinde tutarsız kalıyordu)
         if (elDamgaVergisi && manualTargetId !== 'damgaVergisi') {
-          var dvOran = 745.07 / 133595.50; // ~0.00557704
-          var dv = totalEarnings * dvOran;
+          var dvOran = 5.679082 / 1000.0;
+          var dv = sskMatrah * dvOran;
           elDamgaVergisi.value = formatTRNumber(dv);
         }
       }
 
       // 3. Calculate Deductions (.deduction-amount)
-      // Sendika Aidatı + Spor Aidatı + Mahsup Kesintisi + SSK Prim İşçi + Gelir Vergisi + Damga Vergisi + İlave Kesinti - Mahsup Farkı
+      // Sendika Aidatı + Spor Aidatı + Mahsup Kesintisi + SSK Prim İşçi + Gelir Vergisi + Damga Vergisi + İlave Kesinti
+      // NOT: Mahsup Fark toplamdan HARİÇ tutulur - 4 gerçek bordronun Kesinti Toplamı'nı elle
+      // toplayınca bu alanın hiçbirinde toplama dahil edilmediği görüldü (eski kod yanlışlıkla
+      // işaretli olarak ekliyordu, bu da Net Ödeme'yi gerçek bordrodan saptırıyordu).
       var deductionInputs = document.querySelectorAll('.deduction-amount');
       var totalDeductions = 0;
       deductionInputs.forEach(function(input) {
+        if (input.id === 'mahsupFark') return;
         var val = parseTRNumber(input.value);
-        if (input.id === 'kesMahsup') {
-          // Orijinal bordroda Mahsup Ksnt. '-6.004,01' olarak yazsa da kesintiye pozitif eklenir
-          totalDeductions += Math.abs(val);
-        } else if (input.id === 'mahsupFark') {
-          // Mahsup Fark -445,91 TL: negatif iade farkıdır, kesinti toplamını azaltır
-          totalDeductions += val;
-        } else {
-          totalDeductions += Math.abs(val);
-        }
+        totalDeductions += Math.abs(val);
       });
 
       // Special case: If all earnings and other deductions are 0, total deductions and net should be cleanly 0
@@ -961,6 +1147,9 @@
         { hourId: 'ubgtSaat', amountId: 'ubgtTutar', rule: 'base' },
         { hourId: 'uiSaat', amountId: 'uiTutar', rule: 'base' },
         { hourId: 'urSaat', amountId: 'urTutar', rule: 'base' },
+        { hourId: 'vpSaat', amountId: 'vpTutar', rule: 'vardiya10' },
+        { hourId: 'gcSaat', amountId: 'gcTutar', rule: 'gece15' },
+        { hourId: 'fmSaat', amountId: 'fmTutar', rule: 'mesai200' },
         { hourId: 'iaseSaat', amountId: 'iaseTutar', rule: 'iase' },
         { hourId: 'gstSaat', amountId: 'gstTutar', rule: 'gst10' },
         { hourId: 'hzmSaat', amountId: 'hzmTutar', rule: 'hizmet' },
@@ -1006,12 +1195,23 @@
         if (e.target.classList.contains('earning-amount') || 
             e.target.classList.contains('special-earning-amount') || 
             e.target.classList.contains('deduction-amount') ||
-            targetId === 'kesVergiMuaf' || targetId === 'iaseTutar') {
+            targetId === 'kesVergiMuaf' || targetId === 'iaseTutar' || targetId === 'iaseSaat' ||
+            targetId === 'yillikGlrVM' || targetId === 'ayNo' || targetId === 'asgariUcretMatrah') {
           recalculatePayslip(targetId);
         }
       });
 
       setupHourCalculations();
+
+      // Toggle the day-count fields for a partial (mid-period) zam
+      var zamKismiEl = document.getElementById('zamKismi');
+      var zamKismiAlanlariEl = document.getElementById('zamKismiAlanlari');
+      if (zamKismiEl && zamKismiAlanlariEl) {
+        zamKismiEl.addEventListener('change', function() {
+          zamKismiAlanlariEl.style.display = zamKismiEl.checked ? 'grid' : 'none';
+        });
+      }
+
       // Run once on load to establish exact sync
       recalculatePayslip();
     }
